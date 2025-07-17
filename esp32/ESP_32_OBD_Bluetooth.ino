@@ -1,13 +1,21 @@
-#include "BluetoothSerial.h"
+#include "BLEDevice.h"
+#include "BLEUtils.h"
+#include "BLEServer.h"
+ 
+#define SERVICE_UUID        "efa01cde-af04-4562-8a93-5e3bcf61ae94"
+#define CHARACTERISTIC_UUID "c84bdef1-cf13-4ad9-87a8-a36a9e66b7bb"
+#define bleServerName "VEEPEAK"
 
-BluetoothSerial BTinst;
-String veepeak_obd_address = "8C:DE:52:DE:A2:6F"; //insert address here.
+static BLEAddress *pServerAddress;
+BLEAdvertisedDevice* myDevice = nullptr;
+BLEClient* pClient;
 bool dev_connected = false;             //determines if you have connnected to your Bluetooth device
 
 void setup() {
   Serial.begin(9600);           // Start serial communication
+  BLEDevice::init("BLE Connection started") BLEinst;
 
-  if (!BTinst.begin("ESP32_OBD", true)) {
+  if (!BLEinst.begin("ESP32_OBD", true)) {
     Serial.println("Init failed!");
     return;
   } else {
