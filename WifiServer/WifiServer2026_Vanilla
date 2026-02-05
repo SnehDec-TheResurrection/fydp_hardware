@@ -1,0 +1,97 @@
+// This is a backup synchronous server. We should try using asyncwebserver as far as possible. 
+
+#include <WiFi.h>
+
+const char* ssid = "myhOtspOt";
+const char* password = "BlueDeww1";
+
+WiFiServer server(80);
+
+String header;
+
+//The below is the request data which we can then parse and send to the display.
+String alert;
+
+bool connectToWifi(wifi_mode_t mode,
+                   const char* ssid,
+                   const char* password,
+                   int num_tries,
+                   int timeOutMs) {
+
+  WiFi.mode(mode);
+
+  for (int i = 0; i < num_tries; i++) {
+    WiFi.begin(ssid, password);
+    if (WiFi.waitForConnectResult(timeOutMs) == WL_CONNECTED) {
+      Serial.println("WiFi connected");
+      return true;
+    }
+    Serial.println("Retrying WiFi...");
+  }
+  return false;
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  if (!connectToWifi(WIFI_STA, ssid, password, 3, 5000)) {
+    Serial.println("WiFi failed");
+    return;
+  }
+
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  server.begin();
+  Serial.println("HTTP server started");
+}
+
+void loop() {
+  WiFiClient client = server.available();
+
+  if (!client) return;
+
+  Serial.println("Client connected");
+
+  header = "";
+  alert = "";
+  int contentLength = 0;
+
+  // ---- Read headers ----
+  while (client.connected()) {
+    if (client.available()) {
+      char c = client.read();
+      header += c;
+
+      // End of headers
+      if (header.endsWith("\r\n\r\n")) {
+        int idx = header.indexOf("Content-Length:");
+        if (idx >= 0) {
+          contentLength = header.substring(idx + 15).toInt();
+        }
+        break;
+      }
+    }
+  }
+
+  // ---- Read POST body ----
+  while (alert.length() < contentLength && client.connected()) {
+    if (client.available()) {
+      alert += (char)client.read();
+    }
+  }
+
+  Serial.println("Received CSV:");
+  Serial.println(alert);
+
+  // ---- HTTP response ----
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-Type: text/plain");
+  client.println("Connection: close");
+  client.println();
+  client.println("OK");
+
+  delay(1);
+  client.stop();
+  Serial.println("Client disconnected\n");
+}
