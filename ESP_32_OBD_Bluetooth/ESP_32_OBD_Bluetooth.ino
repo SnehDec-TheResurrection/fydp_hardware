@@ -268,6 +268,16 @@ void setup() {
     float speed_one_mps = 0;
     float speed_two_mps = 0;
     float acceleration = 0;
+    // Adding the extra PIDs required for acceleration pedal %. 
+    //We combine all of these and then multiply by 100/255 on the software side.
+    // To reduce time on the hardware side, we only fetch them in this code. 
+    // They are all 1 byte fields, like speed. 
+    float pid_47 = 0;
+    float pid_48 = 0;
+    float pid_49 = 0;
+    float pid_4A = 0;
+    float pid_4B = 0;
+    float pid_4C = 0;
     String message = "";
 
     if (setup_success) {
@@ -358,6 +368,152 @@ void setup() {
       Serial.print(", ");
       message += ", ";
       rx_data.clear();
+
+    // request the acceleration pedal parameters, one by one. 
+    //Starting with PID 47.
+      pMyRemoteWriteCharacteristic->writeValue("0147\r");
+      delay(delayms);
+      if (received_response_data) {
+        String spaceless_string = parse("4147", rx_data);
+        rx_data.clear();
+
+        pid_47 = strtol(spaceless_string.c_str(), NULL, 16);
+
+
+        Serial.print(pid_47);
+        message += String(pid_47);
+
+        received_response_data = false; //reset flag.
+
+      } else {
+        Serial.print("EMPTY");
+        rx_data.clear();
+      }
+
+      
+      Serial.print(", ");
+      message += ", ";
+
+       //PID 48 
+      pMyRemoteWriteCharacteristic->writeValue("0148\r");
+      delay(delayms);
+      if (received_response_data) {
+        String spaceless_string = parse("4148", rx_data);
+        rx_data.clear();
+
+        pid_48= strtol(spaceless_string.c_str(), NULL, 16);
+
+
+        Serial.print(pid_48);
+        message += String(pid_48);
+
+        received_response_data = false; //reset flag.
+
+      } else {
+        Serial.print("EMPTY");
+        rx_data.clear();
+      }
+
+      
+      Serial.print(", ");
+      message += ", ";
+
+      // PID 49
+      pMyRemoteWriteCharacteristic->writeValue("0149\r");
+      delay(delayms);
+      if (received_response_data) {
+        String spaceless_string = parse("4149", rx_data);
+        rx_data.clear();
+
+        pid_49 = strtol(spaceless_string.c_str(), NULL, 16);
+
+
+        Serial.print(pid_49);
+        message += String(pid_49);
+
+        received_response_data = false; //reset flag.
+
+      } else {
+        Serial.print("EMPTY");
+        rx_data.clear();
+      }
+
+      
+      Serial.print(", ");
+      message += ", ";
+
+      // PID 4A
+      pMyRemoteWriteCharacteristic->writeValue("014A\r");
+      delay(delayms);
+      if (received_response_data) {
+        String spaceless_string = parse("414A", rx_data);
+        rx_data.clear();
+
+        pid_4A = strtol(spaceless_string.c_str(), NULL, 16);
+
+
+        Serial.print(pid_4A);
+        message += String(pid_4A);
+
+        received_response_data = false; //reset flag.
+
+      } else {
+        Serial.print("EMPTY");
+        rx_data.clear();
+      }
+
+      
+      Serial.print(", ");
+      message += ", ";
+
+      // PID 4B
+      pMyRemoteWriteCharacteristic->writeValue("014B\r");
+      delay(delayms);
+      if (received_response_data) {
+        String spaceless_string = parse("414B", rx_data);
+        rx_data.clear();
+
+        pid_4B = strtol(spaceless_string.c_str(), NULL, 16);
+
+
+        Serial.print(pid_4B);
+        message += String(pid_4B);
+
+        received_response_data = false; //reset flag.
+
+      } else {
+        Serial.print("EMPTY");
+        rx_data.clear();
+      }
+
+      
+      Serial.print(", ");
+      message += ", ";
+
+      // PID 4C
+      pMyRemoteWriteCharacteristic->writeValue("014C\r");
+      delay(delayms);
+      if (received_response_data) {
+        String spaceless_string = parse("414C", rx_data);
+        rx_data.clear();
+
+        pid_4C = strtol(spaceless_string.c_str(), NULL, 16);
+
+
+        Serial.print(pid_4C);
+        message += String(pid_4C);
+
+        received_response_data = false; //reset flag.
+
+      } else {
+        Serial.print("EMPTY");
+        rx_data.clear();
+      }
+
+      
+      Serial.print(", ");
+      message += ", ";
+        
       //request engine RPM
       pMyRemoteWriteCharacteristic->writeValue("010C\r");
       delay(delayms);
