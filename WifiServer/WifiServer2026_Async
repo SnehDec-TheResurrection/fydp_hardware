@@ -1,0 +1,92 @@
+//We will instantiate the second ESP32's HTTP server which will listen for incoming POST requests from the software backend. 
+//Following this tutorial for the initial code: https://randomnerdtutorials.com/esp32-web-server-arduino-ide/
+#include <WiFi.h>
+//Found official Arduino tutorial for the below (https://projecthub.arduino.cc/cetech11/implementing-web-server-on-esp32-5c24be),
+// is easier than the other version which is also included in another file for safety.
+#include <ESPAsyncWebServer.h>
+
+// Can remove this when we merge with the main file, just keeping it here so we can do isolated tests
+const char* ssid = "myhOtspOt";
+const char* password = "BlueDeww1";
+
+// Set web server port number to 80
+AsyncWebServer server(80);
+
+// Variable to store the alert (HTTP request body) as a CSV
+String alert;
+
+//Copied this from the original client ESP32 file we wrote
+bool connectToWifi(wifi_mode_t mode,  const char* ssid, const char* password, int num_tries, int timeOutMs) {
+    int connection_status = 0;
+    int trial_number = 0;
+
+    WiFi.mode(mode);
+
+    connection_status = WiFi.waitForConnectResult(timeOutMs);
+    
+    while (trial_number < num_tries) {
+      WiFi.begin(ssid, password);
+      connection_status = WiFi.waitForConnectResult(timeOutMs);
+      if (connection_status == WL_CONNECTED) {
+        break;
+      }
+      trial_number++;
+      Serial.print("Retrying connection....\n");
+    }
+
+    if (connection_status != WL_CONNECTED) {
+      return false;
+    }
+
+
+    Serial.println("Connection to WiFi Successful\n");
+    return true;
+}
+
+void server_setup (wifi_mode_t mode,  const char* ssid, const char* password, int num_tries, int timeOutMs){
+   connectToWifi(mode,  ssid, password, num_tries, timeOutMs);
+
+// Print local IP address and start web server; we need this so that the software backend can find the esp32 and connect to it.
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+
+	 server.on("/", HTTP_POST, [](AsyncWebServerRequest* request) { 
+	   request->send(200, "text/html", "<html><body><h1>Hello, ESP32!</h1></body></html>"); 
+	 },NULL,
+    [](AsyncWebServerRequest *request,
+       uint8_t *data,
+       size_t len,
+       size_t index,
+       size_t total) {
+
+      // Erase previous alert upon new arrival
+      if (index == 0) {
+        alert = "";
+      }
+
+      // Append new alert
+      for (size_t i = 0; i < len; i++) {
+        alert += (char)data[i];
+      }
+
+      // Final chunk
+      if (index + len == total) {
+        Serial.println("Received alert:");
+        Serial.println(alert);
+        //further parsing to display on dashboard instead of just printing to terminal.
+      }
+    }
+  );
+
+  server.begin();
+}
+
+void setup() {
+  Serial.begin(9600);
+  server_setup(WIFI_STA, ssid, password, 3, 5000);
+}
+
+
+
