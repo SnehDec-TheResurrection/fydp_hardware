@@ -7,6 +7,7 @@ WebSocketsClient webSocket;
 
 const char* ssid = "Pixel_6862";
 const char* password = "Ece@498pass";
+const char* user_id = "123af86"
 
 // ===== CONNECT TO WIFI =====
 bool connectToWifi(wifi_mode_t mode,
@@ -49,7 +50,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 
         case WStype_CONNECTED:
             Serial.printf("[WSc] Connected to: %s\n", payload);
-            webSocket.sendTXT("Connected");
+            webSocket.sendTXT(user_id);
             break;
 
         case WStype_TEXT:
