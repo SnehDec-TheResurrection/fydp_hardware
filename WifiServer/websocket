@@ -1,0 +1,82 @@
+#include <Arduino.h>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <WebSocketsClient.h>
+
+WebSocketsClient webSocket;
+
+const char* ssid = "Pixel_6862";
+const char* password = "Ece@498pass";
+
+// ===== CONNECT TO WIFI =====
+bool connectToWifi(wifi_mode_t mode,
+                   const char* ssid,
+                   const char* password,
+                   int num_tries,
+                   int timeOutMs) {
+
+    WiFi.mode(mode);
+
+    for (int trial = 0; trial < num_tries; trial++) {
+
+        WiFi.begin(ssid, password);
+
+        int status = WiFi.waitForConnectResult(timeOutMs);
+
+        if (status == WL_CONNECTED) {
+            Serial.println("Connection Successful");
+            Serial.print("IP: ");
+            Serial.println(WiFi.localIP());
+            return true;
+        }
+
+        Serial.println("Retrying connection...");
+    }
+
+    Serial.println("WiFi connection failed");
+    return false;
+}
+
+
+// ===== DEFINE WEBSOCKET FUNCTION =====
+void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
+
+    switch(type) {
+
+        case WStype_DISCONNECTED:
+            Serial.println("[WSc] Disconnected!");
+            break;
+
+        case WStype_CONNECTED:
+            Serial.printf("[WSc] Connected to: %s\n", payload);
+            webSocket.sendTXT("Connected");
+            break;
+
+        case WStype_TEXT:
+            Serial.printf("[WSc] Received: %s\n", payload);
+            break;
+    }
+}
+
+
+// ===== SETUP DEBUGGING PRINTS AND START WEBSOCKET =====
+void setup() {
+    Serial.begin(9600);
+    Serial.println(connectToWifi(WIFI_STA, ssid, password, 3, 10000));
+
+    // Start WebSocket
+    webSocket.beginSSL(
+        "driving-buddy-public-44aec6b920a3.herokuapp.com",
+        443,
+        "/websocky"
+    );
+
+    webSocket.onEvent(webSocketEvent);
+    webSocket.setReconnectInterval(5000);
+}
+
+
+// ===== LOOP WEBSOCKET TO KEEP IT RUNNING =====
+void loop() {
+    webSocket.loop();
+}
