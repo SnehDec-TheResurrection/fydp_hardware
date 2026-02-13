@@ -79,4 +79,11 @@ void setup() {
 // ===== LOOP WEBSOCKET TO KEEP IT RUNNING =====
 void loop() {
     webSocket.loop();
+    unsigned long lastKeepAlive = 0;
+    unsigned long currentTime = millis();
+
+  if (currentTime - lastKeepalive > 25000) {
+    webSocket.sendTXT("keepalive");
+    lastKeepalive = currentTime;
+  }
 }
